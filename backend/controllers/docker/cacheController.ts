@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import redisClient from '../../cache/redis';
+import { getAsync, setAsync } from '../helper';
 import { GrypeScan, ServerError, countVulnerability } from '../../backend-types';
 
 interface CacheController {
@@ -27,7 +27,7 @@ interface CacheController {
 
   /**
    * @method POST
-   * @abstract set countVulnerabilities to the redis cache
+   * @abstract set countVulnerabilities to the Memcached cache
    * @returns {void}
    */
   setCacheScan: (
@@ -39,7 +39,7 @@ interface CacheController {
   /**
    * @method POST
    * @param {string} req.body.scanName
-   * @abstract Check RedisClient cache for first load / last scan
+   * @abstract Check memcached cache for first load / last scan
    * @returns {void}
    */
   checkCacheScan: (
@@ -59,8 +59,9 @@ const cacheController: CacheController = {} as CacheController;
 
 cacheController.checkCacheGrypeDb = async (req, res, next) => {
   try {
-    const cachedDbStatus = await redisClient.get('cachedDbStatus');
-    if (JSON.parse(cachedDbStatus)) {
+    const cachedDbStatus = await getAsync('cachedDbStatus');
+    console.log('cachedDbStatus: ', cachedDbStatus);
+    if (cachedDbStatus === 'true') {
     res.locals.cachedDbStatus = true
     }
     next()
@@ -80,8 +81,7 @@ cacheController.setCacheGrypeDb = async (req, res, next) => {
     next()
   } else {
     try {
-      await redisClient.set('cachedDbStatus', JSON.stringify(true));
-      await redisClient.expire('cachedDbStatus', 60 * 60 * 24);
+      await setAsync('cachedDbStatus', JSON.stringify(true), 60 * 60 * 24);
       next()
     } catch (error) {
       const errObj: ServerError = {
@@ -98,25 +98,24 @@ cacheController.setCacheScan = async (req, res, next) => {
   if (res.locals.addToCache) {
     try {
       // cache vulnerability
-      await redisClient.set(
+      await setAsync(
         `${res.locals.scanName}&vulnerabilites`,
-        JSON.stringify(res.locals.vulnerabilites)
+        JSON.stringify(res.locals.vulnerabilites),
+        60 * 60 * 24
       );
       // cache everything
-      await redisClient.set(
+      await setAsync(
         `${res.locals.scanName}&everything`,
-        JSON.stringify(res.locals.everything)
+        JSON.stringify(res.locals.everything),
+        60 * 60 * 24
       );
       // cache timeStamp
-      await redisClient.set(
+      await setAsync(
         `${res.locals.scanName}&timeStamp`,
-        JSON.stringify(res.locals.timeStamp)
+        JSON.stringify(res.locals.timeStamp),
+        60 * 60 * 24
       );
-      // cache isSaved
-      // await redisClient.set(
-      //   `isSaved`,
-      //   JSON.stringify(res.locals.isSaved)
-      // );
+ 
 
       next();
     } catch (error) {
@@ -135,9 +134,10 @@ cacheController.setCacheScan = async (req, res, next) => {
 cacheController.setCachedSave = async (req, res, next) => {
     try {
       // cache isSaved
-      await redisClient.set(
+      await setAsync(
         `isSaved`,
-        JSON.stringify(true)
+        JSON.stringify(true),
+        60 * 60 * 24
       );
 
       next();
@@ -153,15 +153,15 @@ cacheController.setCachedSave = async (req, res, next) => {
 
 cacheController.checkCacheScan = async (req, res, next) => {
   const { scanName }: { scanName: string } = req.body;
-  const cachedVulnernabilities = await redisClient.get(`${scanName}&vulnerabilites`);
-  const cachedEverything = await redisClient.get(`${scanName}&everything`);
-  const cachedTimeStamp = await redisClient.get(`${scanName}&timeStamp`);
-  const cachedIsSaved = await redisClient.get(`isSaved`);
+  const cachedVulnernabilities = await getAsync(`${scanName}&vulnerabilites`);
+  const cachedEverything = await getAsync(`${scanName}&everything`);
+  const cachedTimeStamp = await getAsync(`${scanName}&timeStamp`);
+  const cachedIsSaved = await getAsync(`isSaved`);
 
   res.locals.saved = cachedIsSaved ? true : false;
 
   if (
-    cachedVulnernabilities !== null && cachedEverything !== null && cachedTimeStamp !== null
+    cachedVulnernabilities !== undefined && cachedEverything !== undefined && cachedTimeStamp !== undefined
   ) {
     res.locals.vulnerabilites = JSON.parse(cachedVulnernabilities);
     res.locals.everything = JSON.parse(cachedEverything);

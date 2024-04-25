@@ -1,17 +1,20 @@
 import { ContainerPS, LogObject, NetworkContainerType, NetworkInspect, NetworkType } from "../../types";
 
 /**
- * @abstract Spawns an execution terminal but does so asynchronously.
+ * @abstract Spawns asyncronous versions of various functions
  *           Therefore, we can await response. 
- *           *** This is preferred over using regular exec***
+ *           *** This is preferred over using regular the regular versions because they are not promises by default***
  *           Please read the docs below
  * @link https://nodejs.org/api/child_process.html#child_processexeccommand-options-callback
  * @returns {Promise}
  */
 import util from 'util';
 import { exec } from 'child_process';
-export const execAsync = util.promisify(exec);
+import memcachedClient from '../cache/cache';
 
+export const execAsync = util.promisify(exec);
+export const setAsync = util.promisify(memcachedClient.set).bind(memcachedClient);
+export const getAsync = util.promisify(memcachedClient.get).bind(memcachedClient);
 
 /**
  * @method

@@ -17,8 +17,7 @@ services:
     ports:
       - 4000:4000
     depends_on:
-      - redis
-
+      - memcached
 
   cadvisor:
     # Must use cadvisor v0.47.1 instead of latest, latest does not work for macOS
@@ -103,6 +102,8 @@ services:
     container_name: docketeer-ext-postgres
     expose:
       - 5432
+    ports:
+      - 5432:5432
     volumes:
       - postgres_volume:/var/lib/postgresql/data
       - docketeer-ext-initsql:/docker-entrypoint-initdb.d/
@@ -113,12 +114,12 @@ services:
     depends_on:
       - docketeer
 
-  # Setup redis caching server at port 6379
-  redis:
-    image: redis/redis-stack-server:latest
-    container_name: docketeer-ext-redis
+  # Setup memchaced caching server at port 11211
+  memcached:
+    image: memcached:latest
+    container_name: docketeer-ext-memchached
     ports:
-      - 49258:6379
+      - 49259:11211
 
 volumes:
   docketeer-ext-prometheus-data:

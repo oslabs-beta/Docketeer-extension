@@ -21,6 +21,7 @@
     "dayjs-plugin-utc": "^0.1.2",
     "framer-motion": "^11.0.8",
     "jsonwebtoken": "^9.0.1",
+    "memcached": "^2.2.2",
     "mongoose": "^8.2.3",
     "nth-check": "^2.1.1",
     "pg": "^8.8.0",

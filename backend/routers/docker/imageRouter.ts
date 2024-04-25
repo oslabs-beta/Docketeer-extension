@@ -25,7 +25,7 @@ router.get('/', cacheController.checkCacheGrypeDb, imageController.getImages, im
  */
 
 //when the user first opens the page
-//when the user refreshes the page and gets the REDIS cache result as well
+//when the user refreshes the page and gets the cache result as well
 router.post("/scan", cacheController.checkCacheScan, imageController.scanImages, cacheController.setCacheScan, (req, res) => {
     return res.status(200).json({
       vulnerabilites: res.locals.vulnerabilites,
