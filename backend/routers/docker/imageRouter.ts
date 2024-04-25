@@ -37,7 +37,7 @@ router.post("/scan", cacheController.checkCacheScan, imageController.scanImages,
 );
 
 /**
- * @abstract Scans an using Grype CLI and summarizes the report's vulnerabilities by severity
+ * @abstract Scans an image using Grype CLI and summarizes the report's vulnerabilities by severity
  * @todo
  * @param req.body.scanName
  * @returns count of vulnerabilities in this format: {

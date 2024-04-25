@@ -25,7 +25,7 @@ const initialState: ImagesStateType = {
 
 
 export const fetchImages = createAsyncThunk(
-  "containers/fetchImages",
+  "images/fetchImages",
   async () => {
     const result: ImageType[] = await Client.ImageService.getImages();
     return result;

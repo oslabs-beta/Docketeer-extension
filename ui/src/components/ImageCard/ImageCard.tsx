@@ -116,7 +116,9 @@ const ImageCard = ({
 			const medium: GrypeScan[] = everything.filter(
 				(el) => el.Severity === 'Medium'
 			);
-			const low: GrypeScan[] = everything.filter((el) => el.Severity === 'Low');
+			const low: GrypeScan[] = everything.filter(
+				(el) => el.Severity === 'Low'
+			);
 			const negligible: GrypeScan[] = everything.filter(
 				(el) => el.Severity === 'Negligible'
 			);
